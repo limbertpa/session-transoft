@@ -1,0 +1,122 @@
+# config data bases
+spring:
+  # config rabbitmq
+  cloud:
+    stream:
+      bindings:
+        pnrInvoiceSoldChannel:
+          binder: rabbit1
+          destination: pnr.invoice.sold
+          group: pnrinvoicesoldgroup
+        pnrInvoiceWithSoldChannel:
+          binder: rabbit1
+          destination: pnr.invoicewith.sold
+          group: pnrinvoicewithsoldgroup
+        pnrActiveFinanceChannel:
+          binder: rabbit1
+          destination: pnrF.active
+          content-type: application/json
+          group: pnrFactivegroup
+        pnrCanceledFinanceChannel:
+          binder: rabbit1
+          destination: pnr.canceled.finance
+          group: pnrcanceledfinancegroup
+        pnrActiveFinanceCancelChannel:
+          binder: rabbit1
+          destination: pnrF.active.cancel
+          content-type: application/json
+          group: pnrFactivecancelgroup
+        pnrActiveFLuggageChannel:
+          binder: rabbit1
+          destination: pnrActiveF.luggage
+          content-type: application/json
+          group: pnrActiveFLuggagegroup
+        pnrInvoiceLuggageChannel:
+          binder: rabbit1
+          destination: pnr.created.luggage
+          group: pnrcreatedluggagegroup
+        cargoInvoiceChannel:
+          binder: rabbit1
+          destination: cargo.create.invoice
+          group: cargocreateinvoicegroup
+        cargoActiveChannel:
+          binder: rabbit1
+          destination: cargo.active
+          content-type: application/json
+          group: cargoactivegroup
+      binders:
+        rabbit1:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: 127.0.0.1 #192.168.0.110
+                port: 5672
+                username: admin
+                password: admin
+  #profiles: test
+  #jmx:
+    #enabled: false
+# Datasource and JPA configuration to be used for using the same tokenstore as the authorization server for
+# the defined resource server. Note that there can't be 2 different root nodes, so datasource falls under the "spring" node.
+  datasource:
+    url: jdbc:mysql://localhost:3306/finance
+    username: root
+    password: mysql
+    driver-class: com.mysql.jdbc.Driver
+    initialize: true
+    separator: ^
+    continueOnError: false
+    schema: classpath:/db-scripts/0.0.1/schema.sql
+    data: classpath:/db-scripts/0.0.1/masterData.sql
+#
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    hibernate:
+      #ddl-auto: create
+      show_sql: true
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: 
+    com.transoft.completeair.finance: DEBUG
+
+  # Logger-specific levels.
+  loggers:
+
+    # Redirects SQL logs to a separate file
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+# config Api Gateway Oauth
+serviceOauth:
+  login: http://oauth-service/uaa/oauth/token?client_id=
+  refresh: http://oauth-service/uaa/oauth/token?grant_type=refresh_token&refresh_token=
+  logout: http://oauth-service/uaa/api/logout-up
+  account: http://localhost:9999/uaa/api/account
+# Note: import disable mode product and active mode Dev
+server:
+  port: 8089
+#spring:
+  #application:
+    #name: finance
+  #config:
+    #name: finance
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://actuator:password@localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    metadataMap:
+      instanceId: ${spring.application.name}:${server.port}
+
+security:
+  oauth2:
+    resource:
+      userInfoUri: http://localhost:9999/uaa/api/user
+
+debug: true

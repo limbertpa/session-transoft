@@ -1,0 +1,146 @@
+# config data bases
+spring:
+  # config Rabbitmq
+  cloud:
+    stream:
+      bindings:
+        pnrCreatedReserveChannel:
+          binder: rabbit1
+          destination: pnr.created.reserve
+          content-type: application/json
+          group: pnrcreatedreservegroup
+        pnrCanceledReserveChannel:
+          binder: rabbit1
+          destination: pnr.canceled.reserve
+          content-type: application/json
+          group: pnrcanceledreservegroup
+        pnrCanceledFinanceChannel:
+          binder: rabbit1
+          destination: pnr.canceled.finance
+          content-type: application/json
+          group: pnrcanceledfinancegroup
+        pnrActiveFCChannel:
+          binder: rabbit1
+          destination: pnrFC.active
+          group: pnrFCactivegroup
+        pnrActiveFinanceChannel:
+          binder: rabbit1
+          destination: pnrF.active
+          group: pnrFactivegroup
+        pnrInvoiceSoldChannel:
+          binder: rabbit1
+          destination: pnr.invoice.sold
+          content-type: application/json
+          group: pnrinvoicesoldgroup
+        pnrInvoiceWithSoldChannel:
+          binder: rabbit1
+          destination: pnr.invoicewith.sold
+          content-type: application/json
+          group: pnrinvoicewithsoldgroup
+        pnrCanceledActiveFCChannel:
+          binder: rabbit1
+          destination: pnrCancelFC.active
+          group: pnrCancelFCactivegroup
+        pnrActiveFinanceCancelChannel:
+          binder: rabbit1
+          destination: pnrF.active.cancel
+          group: pnrFactivecancelgroup
+        pnrInvoiceLuggageChannel:
+          binder: rabbit1
+          destination: pnr.created.luggage
+          content-type: application/json
+          group: pnrcreatedluggagegroup
+        pnrActiveFLuggageChannel:
+          binder: rabbit1
+          destination: pnrActiveF.luggage
+          group: pnrActiveFLuggagegroup
+      binders:
+        rabbit1:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: 127.0.0.1 #192.168.0.110
+                port: 5672
+                username: admin
+                password: admin
+  #profiles: test
+  #jmx:
+    #enabled: false
+# Datasource and JPA configuration to be used for using the same tokenstore as the authorization server for
+# the defined resource server. Note that there can't be 2 different root nodes, so datasource falls under the "spring" node.
+  datasource:
+    url: jdbc:mysql://localhost:3306/pnr
+    username: root
+    password: mysql
+    driver-class: com.mysql.jdbc.Driver
+    initialize: true
+    separator: ^
+    continueOnError: false
+    schema: classpath:/db-scripts/0.0.1/schema.sql
+    data: classpath:/db-scripts/0.0.1/masterData.sql
+#
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+    show-sql: true
+    hibernate:
+      #ddl-auto: create
+      show_sql: true
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level:
+    com.transoft.completeair.pnr: DEBUG
+
+  # Logger-specific levels.
+  loggers:
+
+    # Redirects SQL logs to a separate file
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+# config hystrix
+#hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds=4000
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 12000
+          #semaphore:
+            #maxConcurrentRequests: 20
+# config Oauth
+serviceOauth:
+  login: http://oauth-service/uaa/oauth/token?client_id=
+  refresh: http://oauth-service/uaa/oauth/token?grant_type=refresh_token&refresh_token=
+  logout: http://oauth-service/uaa/api/logout-up
+  account: http://localhost:9999/uaa/api/account
+# Note: import disable mode product and active mode Dev
+server:
+  port: 8087
+#spring:
+  #application:
+    #name: pnr
+  #config:
+    #name: pnr
+
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://actuator:password@localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    metadataMap:
+      instanceId: ${spring.application.name}:${server.port}
+
+security:
+  oauth2:
+    resource:
+      userInfoUri: http://localhost:9999/uaa/api/user
+
+flyway:
+  baselineOnMigrate: true
+  
+debug: true

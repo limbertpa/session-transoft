@@ -1,0 +1,84 @@
+# config data bases
+#spring:
+  #profiles: test
+  #jmx:
+    #enabled: false
+# Datasource and JPA configuration to be used for using the same tokenstore as the authorization server for
+# the defined resource server. Note that there can't be 2 different root nodes, so datasource falls under the "spring" node.
+  #datasource:
+    #url: jdbc:mysql://localhost:3306/mrn
+    #username: root
+    #password: mysql
+    #driver-class: com.mysql.jdbc.Driver
+    #initialize: true
+    #separator: ^
+    #continueOnError: false
+    #schema: classpath:/db-scripts/0.0.1/schema.sql
+    #data: classpath:/db-scripts/0.0.1/masterData.sql
+#
+  #jpa:
+    #database-platform: org.hibernate.dialect.MySQLDialect
+    #show-sql: true
+    #hibernate:
+      #ddl-auto: create
+      #show_sql: true
+      #naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level: 
+    com.transoft.completeair.mrn: DEBUG
+
+  # Logger-specific levels.
+  loggers:
+
+    # Redirects SQL logs to a separate file
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+
+# Note: import disable mode product and active mode Dev
+server:
+  port: 8086
+# config bus
+spring:
+  cloud:
+# config rabbitmq
+    stream:
+      binders:
+        rabbit1:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: 127.0.0.1 #config ip rabbitmq
+                port: 5672
+                username: admin
+                password: admin
+#spring:
+  #application:
+    #name: mrn
+  #config:
+    #name: mrn
+# Config KieServer
+kieServer:
+  user: kieserver
+  password: kieserver,.!
+  url: http://172.16.0.104:8080/kie-server/services/rest/server
+  containerId: fare-engine
+# Config Eureka
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://actuator:password@localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    metadataMap:
+      instanceId: ${spring.application.name}:${server.port}
+
+security:
+  oauth2:
+    resource:
+      userInfoUri: http://localhost:9999/uaa/api/user
+
+debug: true

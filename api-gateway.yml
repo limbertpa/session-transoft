@@ -1,0 +1,171 @@
+# Define settings for Single-Sign-On with OAuth2; this means that we need to relay the OAuth token
+# to the subsequent resources that are proxied by the Zuul api gateway.
+
+# The home definition tells us to allow anonymous access (secure: false) to the static resources that
+# are accessed through the Zuul proxy.
+
+# Remaining properties are used by the OAuth2 SSO to determine where the authorization server is and
+# what client crendentials to use to access that server.
+# Logging settings.
+logging:
+
+  # The default level of all loggers. Can be OFF, ERROR, WARN, INFO, DEBUG, TRACE, or ALL.
+  level:  
+  # config application
+    org.springframework.cloud.netflix.zuul: TRACE
+    com.transoft.completeair.apigateway: DEBUG
+    org.springframework.security: DEBUG
+  # Logger-specific levels.
+  loggers:
+
+    # Redirects SQL logs to a separate file
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+
+# Define the port where the API gateway server would be running
+server:
+  port: 8765
+# config bus
+spring:
+  cloud:
+# config rabbitmq
+    stream:
+      binders:
+        rabbit1:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: 127.0.0.1 #config ip rabbitmq
+                port: 5672
+                username: admin
+                password: admin
+# config Oauth
+serviceOauth:
+  login: http://oauth-service/uaa/oauth/token?client_id=
+  refresh: http://oauth-service/uaa/oauth/token?grant_type=refresh_token&refresh_token=
+  logout: http://oauth-service/uaa/api/logout-up
+  account: http://oauth-service/uaa/api/account
+  errorOauth: http://localhost:${server.port}
+#spring:
+  #application:
+    #name: api-gateway
+  #config:
+    #name: api-gateway
+#spring.mvc.dispatch-options-request=true
+# Define the routes which determine what URL are serviced by what applications.
+# The application/services are defined in the bootstrap.yml file of individual applications
+# using the spring.application.name property.
+
+# Note that we don't proxy the calls to the authorization server. The reason being that
+# Spring cloud security would need to secure the api gateway before it can route the
+# requests using zuul
+#zuul.host.connect-timeout-millis: 180000 #3 min
+#zuul.host.socket-timeout-millis: 180000
+#zuul:
+  #host:
+    #connect-timeout-millis: 180000
+    #socket-timeout-millis: 180000
+#
+#hystrix:
+  #command:
+    #default:
+      #execution:
+        #isolation:
+          #thread:
+            #timeoutInMilliseconds: 65000
+          #semaphore:
+            #maxConcurrentRequests: 20
+endpoints:
+  restart:
+    enabled: true
+  shutdown:
+    enabled: true
+  health:
+    sensitive: false
+#
+zuul:
+  host:
+    connect-timeout-millis: 180000
+    socket-timeout-millis: 180000
+  sensitiveHeaders:
+  #ignored-services: '*'
+  #ignored-headers: Access-Control-Allow-Credentials, Access-Control-Allow-Origin
+  #ignoredPatterns: /**/api/**
+  #ignoreSecurityHeaders: true
+  routes:
+    config-general:
+      path: /configg/**
+      #sensitiveHeaders:
+      serviceId: config-general
+    flight-control:
+      path: /flightc/**
+      #sensitiveHeaders:
+      serviceId: flight-control
+    fare-control:
+      path: /farec/**
+      serviceId: fare-control
+    mrn:
+      path: /mrn/**
+      serviceId: mrn
+    pnr:
+      path: /pnr/**
+      serviceId: pnr
+    sales:
+      path: /sales/**
+      serviceId: sales
+    finance:
+      path: /finance/**
+      serviceId: finance
+    cargo-control:
+      path: /cargo/**
+      serviceId: cargo-control
+    oauth-service:
+      path: /oauth/**
+      #sensitiveHeaders: Cookie,Set-Cookie
+      serviceId: oauth-service
+    kjar-service:
+      path: /kjar/**
+      serviceId: kjar-service
+      #url: http://192.168.107.26:8090
+    report-transoft:
+      path: /report/**
+      serviceId: report-transoft
+  addProxyHeaders: true
+#
+hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds: 180000
+hystrix.command.default.execution.isolation.semaphore.maxConcurrentRequests: 20
+hystrix.command.default.execution.timeout.enabled: false
+ribbon:
+  ConnectTimeout: 180000
+  ReadTimeout: 180000
+mrn:
+  ribbon:
+    ReadTimeout: 60000
+    ConnectTimeout: 60000
+pnr:
+  ribbon:
+    ReadTimeout: 60000
+    ConnectTimeout: 60000
+sales:
+  ribbon:
+    ReadTimeout: 60000
+    ConnectTimeout: 60000
+# Define the Eureka server that handles service registration
+eureka:
+  client:
+    serviceUrl:
+      #defaultZone: http://actuator:password@localhost:8761/eureka/
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    metadataMap:
+      instanceId: ${spring.application.name}:${server.port}
+
+security:
+  basic:
+    enabled: false
+  oauth2:
+    resource:
+      userInfoUri: http://localhost:9999/uaa/api/user
+      #preferTokenInfo: false
